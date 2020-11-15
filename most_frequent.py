@@ -11,13 +11,20 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 import cv2
 
+
+
 '''
 Carga y tratamiento de la imagen
 '''
-
 def resize_image(img,width,height):
     dim = (width, height)
-    resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
+    
+    interp=cv2.INTER_AREA
+    if(dim > img.shape):
+        interp=cv2.INTER_LINEAR
+        #interp=cv2.INTER_CUBIC
+    
+    resized = cv2.resize(img, dim, interpolation = interp)
     
     return resized
 
@@ -26,7 +33,12 @@ def resize_image_by_percent(img,scale_percent):
     height = int(img.shape[0] * scale_percent / 100)
     dim = (width, height)
     
-    resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
+    interp=cv2.INTER_AREA
+    if(scale_percent>100):
+        interp=cv2.INTER_LINEAR
+        #interp=cv2.INTER_CUBIC
+    
+    resized = cv2.resize(img, dim, interpolation = interp)
     return resized
 
 def print_image(img):
@@ -35,12 +47,9 @@ def print_image(img):
     cv2.destroyAllWindows()
 
 
-
-
 '''
 Cálculo del color más común en la foto
 '''
-
 # Utilizando la media
 def mostCommon_Average(img):
     media = np.average(img, axis=(0,1))
