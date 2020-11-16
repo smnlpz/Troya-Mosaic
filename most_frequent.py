@@ -56,14 +56,19 @@ def mostCommon_Average(img):
     return np.array([media])
 
 # Contando el número de píxeles 
-def mostCommon_PixelCount(img,n=5):
-    unique, counts = np.unique(img.reshape(-1, 3), axis=0, return_counts=True)
+def mostCommon_PixelCount(img,n=5,redu=16):
+    # Reducimos el número de colores a contar.
+    img_tmp = img.copy()
+    img_tmp = img_tmp/redu
+    img_tmp = img_tmp.astype('uint8')
+    
+    unique, counts = np.unique(img_tmp.reshape(-1, 3), axis=0, return_counts=True)
     indexes=np.arange(len(counts))
     zipped_list=zip(counts,indexes)
     
     indexes_sort = [element for _, element in sorted(zipped_list,reverse=True)]
 
-    return unique[indexes_sort[:n]]
+    return unique[indexes_sort[:n]]*redu
 
 # Utilizando clustering
 def mostCommon_KMeans(img):
@@ -101,14 +106,23 @@ def main():
     resized = resize_image(img,100,100)
     
     color_average = mostCommon_Average(resized)
-    colors_pixel = mostCommon_PixelCount(resized)
+    colors_pixel = mostCommon_PixelCount(resized,redu=32)
     colors_kmeans = mostCommon_KMeans(resized)
     
     plotColors(color_average, name="Average")
     plotColors(colors_pixel, name="Pixel Count")
     plotColors(colors_kmeans, name="KMeans")
     
+    '''
+    redu=32
+    col=np.empty([0,3],int)
+    for i in range(int(256/redu)):
+        for j in range(int(256/redu)):
+            for k in range(int(256/redu)):
+                col=np.vstack((col,[i*redu,j*redu,k*redu]))
     
+    plotColors(col)
+    '''
 
 if __name__ == "__main__":
     main()
