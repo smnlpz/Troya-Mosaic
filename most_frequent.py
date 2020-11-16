@@ -10,12 +10,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 import cv2
-
+import os
 
 
 '''
 Carga y tratamiento de la imagen
 '''
+def load_images_from_folder(folder):
+    images = []
+    for filename in os.listdir(folder):
+        img = cv2.imread(os.path.join(folder,filename),cv2.IMREAD_UNCHANGED)
+        if img is not None:
+            images.append(img)
+    return images
+
 def resize_image(img,width,height):
     dim = (width, height)
     
@@ -45,6 +53,14 @@ def print_image(img):
     cv2.imshow("Image", img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+    
+def print_image_matplotlib(img):
+    plt.figure(figsize=(16,16))
+    plt.imshow(img[:,:,::-1])
+    plt.axis('off')
+    plt.show()
+
+
 
 
 '''
@@ -70,6 +86,11 @@ def mostCommon_PixelCount(img,n=5,redu=16):
 
     return unique[indexes_sort[:n]]*redu
 
+def mostCommon_AveragePixelCount(img,n=5,redu=16):
+    colors=mostCommon_PixelCount(img,n,redu)
+    media = np.average(colors,axis=0)
+    return np.array([media])
+
 # Utilizando clustering
 def mostCommon_KMeans(img):
     kmeans=KMeans(n_clusters=5,random_state=123456789)
@@ -80,7 +101,7 @@ def mostCommon_KMeans(img):
 
     return kmeans.cluster_centers_[labels_sort]
 
-# Dibujar los colores obtenidos
+# Dibujar los colores obtenidos (la variable color está en BGR)
 def plotColors(colors,name=""):
     print("Colores obtenidos de " + name)
     print(colors)
@@ -89,7 +110,8 @@ def plotColors(colors,name=""):
     fig, ax = plt.subplots()
     
     for color in colors:
-        ax.plot(x,y,linewidth=37,color=color/255)
+        # Usamos color[::-1] porque OpenCV trabaja con BGR en vez de RGB
+        ax.plot(x,y,linewidth=37,color=color[::-1]/255)
         y=y-1
         
     ax.xaxis.set_visible(False)
@@ -98,13 +120,86 @@ def plotColors(colors,name=""):
     plt.title(name)
     plt.show()
 
+# Comparar la imagen con los colores más comunes
+def compare_img_commonColor(img, colors):
+    ncolors=len(colors)
+    height=img.shape[0]
+    width=img.shape[1]
+    img_color = np.empty([height,width,3],dtype='uint8')
+    for i in range(ncolors):
+        img_color[:,i*int(width/ncolors):i*width+int(width/ncolors)] = colors[i][::-1]
+    
+    fig, ax = plt.subplots(1, 2, figsize=(5,5))
+    ax[0].imshow(img[:,:,::-1])
+    ax[1].imshow(img_color)
+    
+    ax[0].axis('off')
+    ax[1].yaxis.set_visible(False)
+    ax[1].set_xticklabels([])
+    ax[1].set_xlabel('<- More Common <-')
+    
+    fig.tight_layout()
+    plt.show()
+
+
+
+'''
+Dividir la imagen y buscar la más similar
+'''
+def find_nearest(colors, color):
+    dists = np.linalg.norm(colors-color,axis=1)
+    idx = dists.argmin()
+    
+    return colors[idx]
+
+def find_idx_nearest(colors, color):
+    dists = np.linalg.norm(colors-color,axis=1)
+    idx = dists.argmin()
+    
+    return idx
+
+# Función principal
+def TroyaMosaic(img,mosaic_imgs,n_photos,mostCommon):
+    height = img.shape[0]
+    width = img.shape[1]
+    
+    size_mosaic = int(height/n_photos)
+    
+    mosaic_colors=np.empty([0,3],int)
+    
+    for i in range(len(mosaic_imgs)):
+        mosaic_imgs[i] = resize_image(mosaic_imgs[i],size_mosaic,size_mosaic)
+        mosaic_colors=np.vstack((mosaic_colors,mostCommon(mosaic_imgs[i],n=1)))
+    
+    
+    for i in np.arange(0,height,size_mosaic):
+        for j in np.arange(0,width,size_mosaic):
+            cuadradito = img[i:i+size_mosaic,j:j+size_mosaic]
+            common_color = mostCommon(cuadradito,redu=1,n=1)
+            idx = find_idx_nearest(mosaic_colors,common_color)
+            img[i:i+size_mosaic,j:j+size_mosaic] = mosaic_imgs[idx]
+    
+    return img
+    
 
 
 def main():
-    img = cv2.imread('./images/troyita.png', cv2.IMREAD_UNCHANGED)
-    #resized = resize_image_by_percent(img,scale_percent=10)
-    resized = resize_image(img,100,100)
+    main_img = cv2.imread('./images/troyita.png', cv2.IMREAD_UNCHANGED)
+    main_img = resize_image(main_img,2500,2500)
     
+    mosaic_imgs = load_images_from_folder('./images/mosaic/')
+    
+    result = TroyaMosaic(main_img,mosaic_imgs,250,mostCommon_PixelCount)
+    
+    print("Done!\n")
+    
+    #print_image(result)
+    print_image_matplotlib(result)
+    
+    #cv2.imwrite('resultado.png',result,[cv2.IMWRITE_PNG_COMPRESSION, 9])
+    
+    '''
+    resized = resize_image(main_img,500,500)
     color_average = mostCommon_Average(resized)
     colors_pixel = mostCommon_PixelCount(resized,redu=32)
     colors_kmeans = mostCommon_KMeans(resized)
@@ -112,17 +207,8 @@ def main():
     plotColors(color_average, name="Average")
     plotColors(colors_pixel, name="Pixel Count")
     plotColors(colors_kmeans, name="KMeans")
-    
     '''
-    redu=32
-    col=np.empty([0,3],int)
-    for i in range(int(256/redu)):
-        for j in range(int(256/redu)):
-            for k in range(int(256/redu)):
-                col=np.vstack((col,[i*redu,j*redu,k*redu]))
     
-    plotColors(col)
-    '''
 
 if __name__ == "__main__":
     main()

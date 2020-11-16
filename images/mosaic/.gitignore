@@ -1,0 +1,4 @@
+# Para evitar subir todas las fotos usadas para generar el mosaico
+*
+*/
+!.gitignore
