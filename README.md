@@ -4,7 +4,7 @@ Procesamiento de imágenes para generar mosaicos de fotos.
 Funcionamiento actual del software:
 Foto Original            |  Procesada (Average)
 :-------------------------:|:-------------------------:
-<img src="images/troyita.png" width="350"/>  |  <img src="results/average/average.jpg" width="350"/>
+<img src="images/troyita.png" width="350"/>  |  <img src="results/average/average.jpg" width="350"/></br>*Click sobre la imagen para poder diferenciar el mosaico*
 
 ### Funcionamiento
 El programa toma todas las imágenes que se vayan a utilizar para el mosaico y se calcula el color más común de cada una de ellas. Tras ello, se divide la imagen principal en el número *azulejos* que se quieran; se irá calculando el color más común en cada uno de esos *azulejos* y se reemplazarán por la imagen que más se acerque en color.
