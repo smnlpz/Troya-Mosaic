@@ -6,7 +6,7 @@ Uso del programa:
 `python3 run.py <img_principal> <directorio_mosaicos> <n_imgs_fila> <tamaño_img_result> <nombre_result>`
 
 Funcionamiento actual del software:
-Foto Original            |  Procesada (150 imágenes por fila)
+Foto Original            |  Procesada (20 imágenes, 150 mosaicos por fila)
 :-------------------------:|:-------------------------:
 <img src="images/troyita.png" width="350"/>  |  <img src="results/average/troyita_average_150.jpg" width="350"/></br>*Click sobre la imagen para poder diferenciar el mosaico*
 <img src="images/flores.png" width="350"/>  |  <img src="results/average/flores_average_150.jpg" width="350"/></br>*Click sobre la imagen para poder diferenciar el mosaico*
