@@ -1,6 +1,10 @@
 # Troya-Mosaic
 Procesamiento de imágenes para generar mosaicos de fotos.
 
+Uso del programa:
+
+`python3 run.py <img_principal> <directorio_mosaicos> <n_imgs_fila> <tamaño_img_result> <nombre_result>`
+
 Funcionamiento actual del software:
 Foto Original            |  Procesada (150 imágenes por fila)
 :-------------------------:|:-------------------------:
