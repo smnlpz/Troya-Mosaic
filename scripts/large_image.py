@@ -21,7 +21,7 @@ class LargeImage:
         self._img[key]=item
     
     def copy(self):
-        return LargeImage(self._img)    
+        return LargeImage(self._img.copy())    
     
     def getData(self):
         return self._img
