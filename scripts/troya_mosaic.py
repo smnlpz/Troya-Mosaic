@@ -45,13 +45,13 @@ class TroyaMosaic:
         self.__main_img.resize_image(width,height)
     
     
-    def find_nearest(tiles, cuad):
-        dists = np.array([tile.getDiff(cuad) for tile in tiles])
+    def find_nearest(tiles, cuad, diffType):
+        dists = np.array([diffType(tile,cuad) for tile in tiles])
         idx = dists.argmin()
         
-        return idx, tiles[idx].getColor()[0]
+        return idx, dists[idx]
     
-    def generate(self,n_photos,mostCommon,redu=1):
+    def generate_by_color(self,n_photos,mostCommon,redu=1):
         self.__result = self.__main_img.copy()
         mosaic_imgs = self.__tiles.copy()
         
@@ -70,8 +70,32 @@ class TroyaMosaic:
             for j in np.arange(0,width,size_mosaic):
                 cuadradito = Tile(self.__result[i:i+size_mosaic,j:j+size_mosaic])
                 mostCommon(cuadradito,redu=redu,n=1)
-                idx, _ = TroyaMosaic.find_nearest(mosaic_imgs,cuadradito)
+                idx, _ = TroyaMosaic.find_nearest(mosaic_imgs,cuadradito,Tile.getDiff_by_color)
                 self.__result[i:i+size_mosaic,j:j+size_mosaic] = mosaic_imgs[idx].getData()
+                
+        print('Done!\n')
+        
+    def generate_by_pixel(self,n_photos):
+        self.__result = self.__main_img.copy()
+        mosaic_imgs = self.__tiles.copy()
+        
+        height = self.__result.shape[0]
+        width = self.__result.shape[1]
+        
+        size_mosaic = int(height/n_photos)
+        
+        for i in range(len(mosaic_imgs)):
+            mosaic_imgs[i].resize_image(size_mosaic,size_mosaic)
+        
+        print('Generando resultado...\n')
+        
+        for i in np.arange(0,height,size_mosaic):
+            for j in np.arange(0,width,size_mosaic):
+                cuadradito = Tile(self.__result[i:i+size_mosaic,j:j+size_mosaic])
+                idx, _ = TroyaMosaic.find_nearest(mosaic_imgs,cuadradito,Tile.getDiff_by_pixel)
+                self.__result[i:i+size_mosaic,j:j+size_mosaic] = mosaic_imgs[idx].getData()
+                if ((i*height/size_mosaic)/size_mosaic+j/size_mosaic)%((n_photos*n_photos)/10) == 0:
+                    print('Fotos añadidas: ' +str((i*height/size_mosaic)/size_mosaic+j/size_mosaic))
                 
         print('Done!\n')
         

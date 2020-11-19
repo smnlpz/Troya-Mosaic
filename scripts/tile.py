@@ -24,7 +24,7 @@ class Tile(LargeImage):
     '''
     Operaciones
     '''
-    def getDiff(self,tile):
+    def getDiff_by_color(self,tile):
         # La raíz cuadrada es muy costosa computacionalmente,
         # y no es necesaria para nuestro resultado
         # dist = np.linalg.norm(self.__colors[0]-tile.__colors[0])
@@ -33,7 +33,17 @@ class Tile(LargeImage):
         (self.__colors[0][2]-tile.__colors[0][2])*(self.__colors[0][2]-tile.__colors[0][2])
         
         return dist
+    
+    def getDiff_by_pixel(self,tile):
+        dist = 0
+        for i in range(self._img.shape[0]):
+            for j in range(self._img.shape[1]):
+                dist += (int(self._img[i,j,0])-int(tile._img[i,j,0]))*(int(self._img[i,j,0])-int(tile._img[i,j,0]))+ \
+                (int(self._img[i,j,1])-int(tile._img[i,j,1]))*(int(self._img[i,j,1])-int(tile._img[i,j,1]))+ \
+                (int(self._img[i,j,2])-int(tile._img[i,j,2]))*(int(self._img[i,j,2])-int(tile._img[i,j,2]))
         
+        return dist
+    
     
     '''
     Cálculo del color más común en la foto

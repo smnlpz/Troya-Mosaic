@@ -10,6 +10,7 @@ from scripts.troya_mosaic import TroyaMosaic
 from scripts.tile import Tile
 
 import sys
+import time
 
 
 def main():
@@ -24,12 +25,18 @@ def main():
     print('\n######################################\n')
     mosaic = TroyaMosaic(sys.argv[1],sys.argv[2])
     mosaic.resize_main(int(sys.argv[4]),int(sys.argv[4]))
-    mosaic.generate(int(sys.argv[3]),Tile.mostCommon_Average)
+    
+    start_time = time.time()
+    
+    mosaic.generate_by_color(int(sys.argv[3]),Tile.mostCommon_Average)
+    #mosaic.generate_by_pixel(int(sys.argv[3]))
+    
+    print("--- %s seconds ---" % (time.time() - start_time))
     
     mosaic.maskOverlay(0.3)
     #mosaic.plotResult(mode='cv2')
     
-    mosaic.saveResult(sys.argv[5] + '.jpg')
+    mosaic.saveResult(sys.argv[5])
     mosaic.saveResult(sys.argv[5] + '_overlay.jpg',overlay='Yes')
     
     print('Fin!\n')
