@@ -40,41 +40,52 @@ class TroyaMosaic:
         img = cv2.imread(tile_name,cv2.IMREAD_UNCHANGED)
         if img is not None:
             self.__tiles.append(Tile(img))
-            
-    def resize_main(self,width,height):
-        self.__main_img.resize_image(width,height)
-    
-    
+        
     def find_nearest(tiles, cuad, diffType):
         dists = np.array([diffType(tile,cuad) for tile in tiles])
         idx = dists.argmin()
         
         return idx, dists[idx]
     
-    def generate_by_color(self,n_photos,mostCommon,redu=1):
+    def generate_by_color(self, n_photos_width, width, mostCommon=Tile.mostCommon_Average, redu=1):
         self.__result = self.__main_img.copy()
+        
+        proportion = self.__result.shape[0]/self.__result.shape[1]
+        height = int(width*proportion)
+        
+        tile_size = int(width/n_photos_width)
+        n_photos_height = int(height/tile_size)
+        
+        if width % n_photos_width != 0:
+            width -= width % n_photos_width
+        
+        
+        if height % n_photos_height != 0:
+            height -= height % n_photos_height
+            
+        print(str(width) + ' píxeles de ancho y ' + str(n_photos_width) + ' fotos.')
+        print(str(height) + ' píxeles de alto y ' + str(n_photos_height) + ' fotos.')
+        
+        self.__result.resize_image(width,height)
+        
         mosaic_imgs = self.__tiles.copy()
         
-        height = self.__result.shape[0]
-        width = self.__result.shape[1]
-        
-        size_mosaic = int(height/n_photos)
-        
         for i in range(len(mosaic_imgs)):
-            mosaic_imgs[i].resize_image(size_mosaic,size_mosaic)
+            mosaic_imgs[i].resize_image(tile_size,tile_size)
             mostCommon(mosaic_imgs[i],redu=redu)
         
         print('Generando resultado...\n')
         
-        for i in np.arange(0,height,size_mosaic):
-            for j in np.arange(0,width,size_mosaic):
-                cuadradito = Tile(self.__result[i:i+size_mosaic,j:j+size_mosaic])
+        for i in np.arange(0,height,tile_size):
+            for j in np.arange(0,width,tile_size):
+                cuadradito = Tile(self.__result[i:i+tile_size,j:j+tile_size])
                 mostCommon(cuadradito,redu=redu,n=1)
                 idx, _ = TroyaMosaic.find_nearest(mosaic_imgs,cuadradito,Tile.getDiff_by_color)
-                self.__result[i:i+size_mosaic,j:j+size_mosaic] = mosaic_imgs[idx].getData()
+                self.__result[i:i+tile_size,j:j+tile_size] = mosaic_imgs[idx].getData()
                 
         print('Done!\n')
         
+    '''
     def generate_by_pixel(self,n_photos):
         self.__result = self.__main_img.copy()
         mosaic_imgs = self.__tiles.copy()
@@ -98,10 +109,12 @@ class TroyaMosaic:
                     print('Fotos añadidas: ' +str((i*height/size_mosaic)/size_mosaic+j/size_mosaic))
                 
         print('Done!\n')
-        
+    '''
     
     def maskOverlay(self,alpha):
-        self.__result_overlay = LargeImage(cv2.addWeighted(self.__result.getData(), 1-alpha, self.__main_img.getData(), alpha, 0))
+        resized = self.__main_img.copy()
+        resized.resize_image(self.__result.shape[1],self.__result.shape[0])
+        self.__result_overlay = LargeImage(cv2.addWeighted(self.__result.getData(), 1-alpha, resized.getData(), alpha, 0))
     
     def plot(self,mode='cv2',img='result'):
         if img == 'main':
@@ -112,15 +125,15 @@ class TroyaMosaic:
             self.__result_overlay.plot(mode=mode)
             
         
-    def saveResult(self,name,compression='Yes',overlay='No'):
+    def saveResult(self,name,compression=True,overlay=False):
         print('Guardando imagen '+ name + ' ...\n')
         
         to_save = self.__result.getData()
         
-        if overlay == 'Yes':
+        if overlay:
             to_save = self.__result_overlay.getData()
         
-        if compression == 'Yes':
+        if compression:
             cv2.imwrite(name,to_save,[cv2.IMWRITE_JPEG_QUALITY, 20])
         else:
             cv2.imwrite(name,to_save)
