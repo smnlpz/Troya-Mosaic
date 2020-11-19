@@ -20,6 +20,7 @@ class TroyaMosaic:
         print('Cargando imagen ' + img_name + ' ...\n')
         self.__main_img = LargeImage(cv2.imread(img_name, cv2.IMREAD_UNCHANGED))
         self.__result = self.__main_img.copy()
+        self.__result_overlay = self.__main_img.copy()
         
         if directory_name is not None:
             print('Cargando directorio ' + directory_name + '...\n')
@@ -28,8 +29,10 @@ class TroyaMosaic:
     
     def getMainImg(self):
         return self.__main_img
+    
     def getTiles(self):
         return self.__tiles
+    
     def getResult(self):
         return self.__result
     
@@ -71,21 +74,32 @@ class TroyaMosaic:
                 self.__result[i:i+size_mosaic,j:j+size_mosaic] = mosaic_imgs[idx].getData()
                 
         print('Done!\n')
+        
     
+    def maskOverlay(self,alpha):
+        self.__result_overlay = LargeImage(cv2.addWeighted(self.__result.getData(), 1-alpha, self.__main_img.getData(), alpha, 0))
     
-    def plotResult(self,mode='cv2'):
-        if mode == 'cv2':
-            self.__result.plot()
-        elif mode == 'plt':
-            self.__result.plot_matplotlib()
+    def plot(self,mode='cv2',img='result'):
+        if img == 'main':
+            self.__main_img.plot(mode=mode)
+        elif img == 'result':
+            self.__result.plot(mode=mode)
+        elif img == 'overlay':
+            self.__result_overlay.plot(mode=mode)
             
-    
-    def saveResult(self,name,compression='Yes'):
+        
+    def saveResult(self,name,compression='Yes',overlay='No'):
         print('Guardando imagen '+ name + ' ...\n')
+        
+        to_save = self.__result.getData()
+        
+        if overlay == 'Yes':
+            to_save = self.__result_overlay.getData()
+        
         if compression == 'Yes':
-            cv2.imwrite(name,self.__result.getData(),[cv2.IMWRITE_JPEG_QUALITY, 20])
+            cv2.imwrite(name,to_save,[cv2.IMWRITE_JPEG_QUALITY, 20])
         else:
-            cv2.imwrite(name,self.__result.getData())
+            cv2.imwrite(name,to_save)
 
         
     

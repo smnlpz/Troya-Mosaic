@@ -21,14 +21,19 @@ def main():
             print('Faltan argumentos para el programa. Use -h para obtener ayuda.\n')
             return
     
-    print('\n###################\n')
+    print('\n######################################\n')
     mosaic = TroyaMosaic(sys.argv[1],sys.argv[2])
     mosaic.resize_main(int(sys.argv[4]),int(sys.argv[4]))
     mosaic.generate(int(sys.argv[3]),Tile.mostCommon_Average)
-    mosaic.saveResult(sys.argv[5])
+    
+    mosaic.maskOverlay(0.3)
+    #mosaic.plotResult(mode='cv2')
+    
+    mosaic.saveResult(sys.argv[5] + '.jpg')
+    mosaic.saveResult(sys.argv[5] + '_overlay.jpg',overlay='Yes')
     
     print('Fin!\n')
-    print('\n###################\n')
+    print('######################################\n')
     
 if __name__ == "__main__":
     main()

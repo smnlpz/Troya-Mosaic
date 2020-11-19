@@ -55,17 +55,16 @@ class LargeImage:
     '''
     Muestras por pantalla
     '''
-    def plot(self):
-        cv2.imshow("Image", self._img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-    
-    def plot_matplotlib(self):
-        plt.figure(figsize=(16,16))
-        plt.imshow(self._img[:,:,::-1])
-        plt.axis('off')
-        plt.show()
-        
+    def plot(self, mode = 'cv2'):
+        if mode == 'cv2':
+            cv2.imshow("Image", self._img)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+        elif mode == 'plt':
+            plt.figure(figsize=(16,16))
+            plt.imshow(self._img[:,:,::-1])
+            plt.axis('off')
+            plt.show()
 
     def __str__(self):
         return str(self._img)
