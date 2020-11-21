@@ -15,12 +15,14 @@ from scripts.tile import Tile
 
 class TroyaMosaic:
     __tiles = []
+    __main_img = LargeImage()
     
-    def __init__(self,img_name,directory_name=None):
-        print('Cargando imagen ' + img_name + ' ...\n')
-        self.__main_img = LargeImage(cv2.imread(img_name, cv2.IMREAD_UNCHANGED))
-        self.__result = self.__main_img.copy()
-        self.__result_overlay = self.__main_img.copy()
+    def __init__(self,img_name=None,directory_name=None):
+        if img_name is not None:
+            print('Cargando imagen ' + img_name + ' ...\n')
+            self.addMainImg(img_name)
+            self.__result = self.__main_img.copy()
+            self.__result_overlay = self.__main_img.copy()
         
         if directory_name is not None:
             print('Cargando directorio ' + directory_name + '...\n')
@@ -35,6 +37,9 @@ class TroyaMosaic:
     
     def getResult(self):
         return self.__result
+    
+    def addMainImg(self,main_name):
+        self.__main_img = LargeImage(cv2.imread(main_name, cv2.IMREAD_UNCHANGED))
     
     def addTile(self,tile_name):
         img = cv2.imread(tile_name,cv2.IMREAD_UNCHANGED)

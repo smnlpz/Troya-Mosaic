@@ -6,11 +6,12 @@ Created on Tue Nov 17 18:58:59 2020
 @author: simon
 """
 
+import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
 class LargeImage:
-    def __init__(self, img):
+    def __init__(self, img=255*np.ones([2,2,3])):
         self._img = img
         self.shape = img.shape
         
