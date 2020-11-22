@@ -19,15 +19,13 @@ class TroyaMosaic:
     
     def __init__(self,img_name=None,directory_name=None):
         if img_name is not None:
-            print('Cargando imagen ' + img_name + ' ...\n')
             self.addMainImg(img_name)
-            self.__result = self.__main_img.copy()
-            self.__result_overlay = self.__main_img.copy()
+        
+        self.__result = self.__main_img.copy()
+        self.__result_overlay = self.__main_img.copy()
         
         if directory_name is not None:
-            print('Cargando directorio ' + directory_name + '...\n')
-            for filename in os.listdir(directory_name):
-                self.addTile(os.path.join(directory_name,filename))
+            self.addDirectory(directory_name)
     
     def getMainImg(self):
         return self.__main_img
@@ -38,13 +36,22 @@ class TroyaMosaic:
     def getResult(self):
         return self.__result
     
+    def getOverlay(self):
+        return self.__result_overlay
+    
     def addMainImg(self,main_name):
+        print('Cargando imagen ' + main_name + ' ...\n')
         self.__main_img = LargeImage(cv2.imread(main_name, cv2.IMREAD_UNCHANGED))
     
     def addTile(self,tile_name):
         img = cv2.imread(tile_name,cv2.IMREAD_UNCHANGED)
         if img is not None:
             self.__tiles.append(Tile(img))
+            
+    def addDirectory(self,directory_name):
+        print('Cargando directorio ' + directory_name + '...\n')
+        for filename in os.listdir(directory_name):
+            self.addTile(os.path.join(directory_name,filename))
         
     def find_nearest(tiles, cuad, diffType):
         dists = np.array([diffType(tile,cuad) for tile in tiles])
