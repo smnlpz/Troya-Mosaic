@@ -62,18 +62,20 @@ class TroyaMosaic:
         self.__result = self.__main_img.copy()
         
         proportion = self.__result.shape[0]/self.__result.shape[1]
-        height = int(width*proportion)
         
-        tile_size = int(width/n_photos_width)
-        n_photos_height = int(height/tile_size)
+        height = int(width*proportion)
         
         if width % n_photos_width != 0:
             width -= width % n_photos_width
         
+        tile_size = int(width/n_photos_width)
+        n_photos_height = int(height/tile_size)
         
-        if height % n_photos_height != 0:
-            height -= height % n_photos_height
-            
+        if n_photos_height == 0:
+            n_photos_height=1
+        
+        height = n_photos_height*tile_size
+        
         print(str(width) + ' píxeles de ancho y ' + str(n_photos_width) + ' fotos.')
         print(str(height) + ' píxeles de alto y ' + str(n_photos_height) + ' fotos.')
         
