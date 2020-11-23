@@ -61,14 +61,13 @@ class TroyaMosaic:
     def generate_by_color(self, n_photos_width, width, mostCommon=Tile.mostCommon_Average, redu=1):
         self.__result = self.__main_img.copy()
         
-        proportion = self.__result.shape[0]/self.__result.shape[1]
-        
-        height = int(width*proportion)
-        
         if width % n_photos_width != 0:
             width -= width % n_photos_width
         
         tile_size = int(width/n_photos_width)
+        
+        proportion = self.__result.shape[0]/self.__result.shape[1]
+        height = int(width*proportion)
         n_photos_height = int(height/tile_size)
         
         if n_photos_height == 0:
@@ -81,7 +80,7 @@ class TroyaMosaic:
         
         self.__result.resize_image(width,height)
         
-        mosaic_imgs = self.__tiles.copy()
+        mosaic_imgs = [tile.copy() for tile in self.__tiles]
         
         for i in range(len(mosaic_imgs)):
             mosaic_imgs[i].resize_image(tile_size,tile_size)
