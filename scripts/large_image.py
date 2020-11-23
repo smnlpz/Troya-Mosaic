@@ -15,6 +15,9 @@ class LargeImage:
         self._img = img
         self.shape = img.shape
         
+        if self.shape[2] == 4:
+            self.bgra2bgr()
+        
     def __getitem__(self,key):
         return self._img[key]
     
@@ -22,7 +25,7 @@ class LargeImage:
         self._img[key]=item
     
     def copy(self):
-        return LargeImage(self._img.copy())    
+        return LargeImage(self._img.copy())
     
     def getData(self):
         return self._img
@@ -52,6 +55,19 @@ class LargeImage:
         self._img = cv2.resize(self._img, dim, interpolation = interp)
         self.shape = self._img.shape
     
+    # Convierte la imagen de formato BGRA (BGR con transparencia) a BGR
+    def bgra2bgr(self):
+        blue = self._img[:,:,0]
+        green = self._img[:,:,1]
+        red = self._img[:,:,2]
+        alpha = self._img[:,:,3]
+        
+        self._img[:,:,0] = (1-alpha)*blue + alpha*blue
+        self._img[:,:,1] = (1-alpha)*green + alpha*green
+        self._img[:,:,2] = (1-alpha)*red + alpha*red
+        
+        self._img = self._img[:,:,:3]
+    
     
     '''
     Muestras por pantalla
@@ -63,7 +79,7 @@ class LargeImage:
             cv2.destroyAllWindows()
         elif mode == 'plt':
             plt.figure(figsize=(16,16))
-            plt.imshow(self._img[:,:,::-1])
+            plt.imshow(self._img[:,:,::-1]) # CV2 almacena las imágenes en BGR, no en RGB
             plt.axis('off')
             plt.show()
 

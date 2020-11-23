@@ -21,9 +21,6 @@ class TroyaMosaic:
         if img_name is not None:
             self.addMainImg(img_name)
         
-        self.__result = self.__main_img.copy()
-        self.__result_overlay = self.__main_img.copy()
-        
         if directory_name is not None:
             self.addDirectory(directory_name)
     
@@ -42,6 +39,8 @@ class TroyaMosaic:
     def addMainImg(self,main_name):
         print('Cargando imagen ' + main_name + ' ...\n')
         self.__main_img = LargeImage(cv2.imread(main_name, cv2.IMREAD_UNCHANGED))
+        self.__result = self.__main_img.copy()
+        self.__result_overlay = self.__main_img.copy()
     
     def addTile(self,tile_name):
         img = cv2.imread(tile_name,cv2.IMREAD_UNCHANGED)
@@ -94,7 +93,9 @@ class TroyaMosaic:
                 mostCommon(cuadradito,redu=redu,n=1)
                 idx, _ = TroyaMosaic.find_nearest(mosaic_imgs,cuadradito,Tile.getDiff_by_color)
                 self.__result[i:i+tile_size,j:j+tile_size] = mosaic_imgs[idx].getData()
-                
+        
+        self.__result_overlay = self.__result.copy()
+        
         print('Done!\n')
         
     '''
