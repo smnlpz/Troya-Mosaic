@@ -14,11 +14,11 @@ import time
 
 
 def main():
-    if len(sys.argv) != 6:
+    if len(sys.argv) != 7:
         if len(sys.argv) > 1 and sys.argv[1] == '-h':
-            print('Uso del programa:\npython3 run.py <img_principal> <directorio_mosaicos> <n_imgs_col> <ancho_result> <nombre_result>\n')
+            print('Uso del programa:\npython3 run.py <img_principal> <directorio_mosaicos> <dist_rep> <n_imgs_col> <ancho_result> <nombre_result>\n')
             return
-        if len(sys.argv) < 6:
+        if len(sys.argv) < 7:
             print('Faltan argumentos para el programa. Use -h para obtener ayuda.\n')
             return
     
@@ -27,16 +27,14 @@ def main():
     
     start_time = time.time()
     
-    mosaic.generate_by_color(n_photos_width=int(sys.argv[3]),width=int(sys.argv[4]))
-    #mosaic.generate_by_pixel(int(sys.argv[3]))
-    
+    mosaic.generate_by_color(n_photos_width=int(sys.argv[4]),width=int(sys.argv[5]),dist_rep=int(sys.argv[3]))
+
     print("--- %s seconds ---" % (time.time() - start_time))
     
     mosaic.maskOverlay(0.25)
-    #mosaic.plotResult(mode='cv2')
     
-    mosaic.saveResult(sys.argv[5])
-    mosaic.saveResult(sys.argv[5] + '_overlay.jpg',overlay=True)
+    mosaic.saveResult(sys.argv[6], compression=True)
+    #mosaic.saveResult(sys.argv[6] + '_overlay.jpg',overlay=True,compression=True)
     
     print('Fin!\n')
     print('######################################\n')

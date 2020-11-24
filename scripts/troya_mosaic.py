@@ -57,8 +57,19 @@ class TroyaMosaic:
         idx = dists.argmin()
         
         return idx, dists[idx]
+
+    @staticmethod
+    def checkEnt(idx_i,idx_j,matrix,dist=1):
+        forbidden = []
+        for i in range(idx_i-dist,idx_i+dist+1):
+            for j in range(idx_j-dist,idx_j+dist+1):
+                if (i<0 or i>=matrix.shape[0]) or (j<0 or j>=matrix.shape[1]) or (idx_i==i and idx_j==j):
+                    continue
+                forbidden.append(matrix[i,j])
+                
+        return forbidden
     
-    def generate_by_color(self, n_photos_width, width, mostCommon=Tile.mostCommon_Average, redu=1):
+    def generate_by_color(self, n_photos_width, width, dist_rep=0, mostCommon=Tile.mostCommon_Average, redu=1):
         self.__result = self.__main_img.copy()
         
         if width % n_photos_width != 0:
@@ -85,20 +96,38 @@ class TroyaMosaic:
         for i in range(len(mosaic_imgs)):
             mosaic_imgs[i].resize_image(tile_size,tile_size)
             mostCommon(mosaic_imgs[i],redu=redu)
-        
+            
+
         print('Generando resultado...\n')
         
-        for i in np.arange(0,height,tile_size):
-            for j in np.arange(0,width,tile_size):
-                cuadradito = Tile(self.__result[i:i+tile_size,j:j+tile_size])
+        used_matrix = -np.ones([n_photos_height,n_photos_width],dtype=np.int)
+        
+        for i in range(n_photos_height):
+            for j in range(n_photos_width):
+                if dist_rep == 0:
+                    useful_mosaic = mosaic_imgs
+                else:
+                    forbidden = TroyaMosaic.checkEnt(i,j,used_matrix,dist_rep)
+                    useful_mosaic = [elem for index, elem in enumerate(mosaic_imgs) if index not in forbidden]
+                
+                cuadradito = Tile(self.__result[i*tile_size:(i+1)*tile_size,j*tile_size:(j+1)*tile_size])
                 mostCommon(cuadradito,redu=redu,n=1)
-                idx, _ = TroyaMosaic.find_nearest(mosaic_imgs,cuadradito,Tile.getDiff_by_color)
-                self.__result[i:i+tile_size,j:j+tile_size] = mosaic_imgs[idx].getData()
+                idx, _ = TroyaMosaic.find_nearest(useful_mosaic,cuadradito,Tile.getDiff_by_color)
+                self.__result[i*tile_size:(i+1)*tile_size,j*tile_size:(j+1)*tile_size] = useful_mosaic[idx].getData()
+                
+                if dist_rep == 0:
+                    used_matrix[i,j] = idx
+                else:
+                    used_matrix[i,j] = next(k for k, elem in enumerate(mosaic_imgs) if (elem.getColor() == useful_mosaic[idx].getColor()).all())
+                    
+                
+        print(used_matrix)
         
         self.__result_overlay = self.__result.copy()
         
         print('Done!\n')
         
+    
     '''
     def generate_by_pixel(self,n_photos):
         self.__result = self.__main_img.copy()

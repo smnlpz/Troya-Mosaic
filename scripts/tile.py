@@ -20,6 +20,10 @@ class Tile(LargeImage):
     def getColor(self):
         return self.__colors
     
+    def copy(self):
+        copy_ = Tile(self._img.copy())
+        copy_.__colors = self.__colors.copy()
+        return copy_
     
     '''
     Operaciones

@@ -68,7 +68,12 @@ class LargeImage:
         
         self._img = self._img[:,:,:3]
     
-    
+    def rotate_image(self,orient):
+        if orient ==  'right':
+            self._img = cv2.rotate(self._img,cv2.ROTATE_90_CLOCKWISE)
+        elif orient == 'left':
+            self._img = cv2.rotate(self._img,cv2.ROTATE_90_COUNTERCLOCKWISE)
+            
     '''
     Muestras por pantalla
     '''
