@@ -1,9 +1,18 @@
 # Troya-Mosaic
 Procesamiento de imágenes para crear mosaicos de fotos. Utilizando una serie de imágenes, a las que llamaremos *azulejos*, se generará un mosaico de la imagen deseada. Se permite utilizar imágenes de cualquier tamaño, así como redimensionarlas a la hora de utilizar el software.
 
-Uso del programa:
+### Uso del programa:
+Se podrá utilizar tanto una interfaz gráfica como una versión por terminal.
+
+Terminal:
 
 `python3 run.py <img_principal> <directorio_mosaicos> <n_separacion> <n_imgs_fil> <ancho_result> <nombre_result>`
+
+Interfaz:
+
+`python3 run_gui.py`
+
+![Interfaz implementada](gui_use_example.png)
 
 
 ## Funcionamiento
@@ -32,7 +41,7 @@ A continuación se muestran ejemplos de los mosaicos que se pueden generar con e
 
 Dist. Repetición            | artificial_man.jpg  | flores.png | troyita_buenasnoches.png
 :-------------------------:|:-------------------------:|:-------------------------:|:-------------------------:
-Original | <img src="images/artificial_man.jpg" width="350"/>  |  <img src="images/flores.png" width="350"/>  | <img src="images/troyita_buenasnoches.png" width="350"/> 
+Original | <img src="images/artificial_man.jpg" width="350"/>  |  <img src="images/flores.png" width="350"/>  | <img src="images/troyita_buenasnoches.png" width="350"/>
 0 | <img src="results/mosaic_64_rep_0/artificial_man_100.jpg" width="350"/>  |  <img src="results/mosaic_64_rep_0/flores_100.jpg" width="350"/> | <img src="results/mosaic_64_rep_0/troyita_buenasnoches_100.jpg" width="350"/>
 1 | <img src="results/mosaic_64_rep_1/artificial_man_100.jpg" width="350"/>  |  <img src="results/mosaic_64_rep_1/flores_100.jpg" width="350"/> | <img src="results/mosaic_64_rep_1/troyita_buenasnoches_100.jpg" width="350"/>
 2 | <img src="results/mosaic_64_rep_2/artificial_man_100.jpg" width="350"/>  |  <img src="results/mosaic_64_rep_2/flores_100.jpg" width="350"/> | <img src="results/mosaic_64_rep_2/troyita_buenasnoches_100.jpg" width="350"/>
@@ -42,4 +51,4 @@ Como podemos ver, conforme aumenta la distancia para que no se repitan los azule
 
 `n_separacion=3 alpha=0`           | `n_separacion=3 alpha=0.3`
 :-------------------------:|:-------------------------:
-<img src="results/mosaic_64_rep_3/flores_100.jpg" width="350"/> | <img src="results/mosaic_64_rep_3_overlay/flores_100.jpg_overlay.jpg" width="350"/> 
+<img src="results/mosaic_64_rep_3/flores_100.jpg" width="350"/> | <img src="results/mosaic_64_rep_3_overlay/flores_100.jpg_overlay.jpg" width="350"/>
