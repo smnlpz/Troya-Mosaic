@@ -16,6 +16,8 @@ from scripts.tile import Tile
 class TroyaMosaic:
     __tiles = []
     __main_img = LargeImage()
+    __result = LargeImage()
+    __result_overlay = LargeImage()
     
     def __init__(self,img_name=None,directory_name=None):
         if img_name is not None:
@@ -110,6 +112,11 @@ class TroyaMosaic:
                     forbidden = TroyaMosaic.checkEnt(i,j,used_matrix,dist_rep)
                     useful_mosaic = [elem for index, elem in enumerate(mosaic_imgs) if index not in forbidden]
                 
+                if not useful_mosaic:
+                    print('No se puede generar la imagen con una separación de ' +str(dist_rep)+ ' casillas sin repeticiones.\n')
+                    self.__result = self.__main_img.copy()
+                    return False
+                
                 cuadradito = Tile(self.__result[i*tile_size:(i+1)*tile_size,j*tile_size:(j+1)*tile_size])
                 mostCommon(cuadradito,redu=redu,n=1)
                 idx, _ = TroyaMosaic.find_nearest(useful_mosaic,cuadradito,Tile.getDiff_by_color)
@@ -121,11 +128,12 @@ class TroyaMosaic:
                     used_matrix[i,j] = next(k for k, elem in enumerate(mosaic_imgs) if (elem.getColor() == useful_mosaic[idx].getColor()).all())
                     
                 
-        print(used_matrix)
+        #print(used_matrix)
         
         self.__result_overlay = self.__result.copy()
         
         print('Done!\n')
+        return True
         
     
     '''
@@ -154,6 +162,16 @@ class TroyaMosaic:
         print('Done!\n')
     '''
     
+    def rotate_image(self,orient):
+        if orient ==  'left':
+            self.__main_img.rotate_image(orient='left')
+            self.__result.rotate_image(orient='left')
+            self.__result_overlay.rotate_image(orient='left')
+        elif orient == 'right':
+            self.__main_img.rotate_image(orient='right')
+            self.__result.rotate_image(orient='right')
+            self.__result_overlay.rotate_image(orient='right')
+    
     def maskOverlay(self,alpha):
         resized = self.__main_img.copy()
         resized.resize_image(self.__result.shape[1],self.__result.shape[0])
@@ -180,6 +198,8 @@ class TroyaMosaic:
             cv2.imwrite(name,to_save,[cv2.IMWRITE_JPEG_QUALITY, 20])
         else:
             cv2.imwrite(name,to_save)
+            
+        print('Done!\n')
 
         
     

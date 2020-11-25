@@ -7,7 +7,6 @@ Created on Wed Nov 18 11:51:34 2020
 """
 
 from scripts.troya_mosaic import TroyaMosaic
-from scripts.tile import Tile
 
 import sys
 import time
@@ -27,14 +26,15 @@ def main():
     
     start_time = time.time()
     
-    mosaic.generate_by_color(n_photos_width=int(sys.argv[4]),width=int(sys.argv[5]),dist_rep=int(sys.argv[3]))
+    result = mosaic.generate_by_color(n_photos_width=int(sys.argv[4]),width=int(sys.argv[5]),dist_rep=int(sys.argv[3]))
 
     print("--- %s seconds ---" % (time.time() - start_time))
     
-    mosaic.maskOverlay(0.25)
+    if result:
+        mosaic.maskOverlay(0.25)
     
-    mosaic.saveResult(sys.argv[6], compression=True)
-    #mosaic.saveResult(sys.argv[6] + '_overlay.jpg',overlay=True,compression=True)
+        mosaic.saveResult(sys.argv[6], compression=True)
+        #mosaic.saveResult(sys.argv[6] + '_overlay.jpg',overlay=True,compression=True)
     
     print('Fin!\n')
     print('######################################\n')

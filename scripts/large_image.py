@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import cv2
 
 class LargeImage:
-    def __init__(self, img=255*np.ones([2,2,3])):
+    def __init__(self, img=np.empty([0,0,3])):
         self._img = img
         self.shape = img.shape
         
@@ -29,6 +29,12 @@ class LargeImage:
     
     def getData(self):
         return self._img
+    
+    def isEmpty(self):
+        if self.shape[0:2] == (0,0):
+            return True
+        else:
+            return False
     
     def resize_image(self,width,height):
         dim = (width, height)
@@ -73,6 +79,7 @@ class LargeImage:
             self._img = cv2.rotate(self._img,cv2.ROTATE_90_CLOCKWISE)
         elif orient == 'left':
             self._img = cv2.rotate(self._img,cv2.ROTATE_90_COUNTERCLOCKWISE)
+        self.shape = self._img.shape
             
     '''
     Muestras por pantalla
