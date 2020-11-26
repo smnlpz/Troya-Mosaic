@@ -85,7 +85,8 @@ class TroyaMosaicGUI:
         
         dist_rep = tk.IntVar()
         ttk.Label(mainwindow,text='Dist. sin repetir').grid(column=1, row=idx_row, pady=2)
-        ttk.Entry(mainwindow,width=10, textvariable=dist_rep).grid(column=2, row=idx_row, pady=2)
+        self.dist_rep_entry = ttk.Entry(mainwindow,width=10, textvariable=dist_rep, validatecommand=lambda: self.callback_rep(dist_rep.get()), validate='focusout')
+        self.dist_rep_entry.grid(column=2, row=idx_row, pady=2)
         idx_row+=1
         
         
@@ -164,19 +165,19 @@ class TroyaMosaicGUI:
         
     def callback_size(self, width, n_photos_width):
         if not self.__troya.getMainImg().isEmpty():
-            if width % n_photos_width != 0:
-                width -= width % n_photos_width
+            if width < 0:
+                width = abs(width)
+            elif width == 0:
+                width = self.__troya.getMainImg().shape[1]
+            if n_photos_width < 0:
+                n_photos_width = abs(n_photos_width)
+            elif n_photos_width == 0:
+                n_photos_width = 75
             
-            tile_size = int(width/n_photos_width)
+            if n_photos_width > width:
+                width = n_photos_width
             
-            proportion = self.__troya.getMainImg().shape[0]/self.__troya.getMainImg().shape[1]
-            height = int(width*proportion)
-            n_photos_height = int(height/tile_size)
-            
-            if n_photos_height == 0:
-                n_photos_height=1
-            
-            height = n_photos_height*tile_size
+            success, height, width, n_photos_height, n_photos_width, tile_size = self.__troya.adjustValues(width, n_photos_width)
             
             self.height_entry.config(state=tk.NORMAL)
             self.height_entry.delete(0,tk.END)
@@ -212,7 +213,15 @@ class TroyaMosaicGUI:
         if direct:
             self.__troya.addDirectory(direct)
             self.n_anyadidas.config(text=str(len(self.__troya.getTiles())) + ' fotos añadidas')
+    
+    def callback_rep(self, dist_rep):
+        if dist_rep < 0:
+            dist_rep = 0
+            self.dist_rep_entry.delete(0,tk.END)
+            self.dist_rep_entry.insert(0,str(dist_rep))
         
+        return True
+            
     def GenerateResult(self, ncol, width, dist):
         if self.__troya.getMainImg().isEmpty():
             tk.messagebox.showinfo(title='Información', message='Carga antes una imagen principal!')
@@ -267,12 +276,14 @@ class TroyaMosaicGUI:
         
         plot_proportion = toplot.shape[0]/toplot.shape[1]
         
+        max_size = 500
+        
         if plot_proportion >= 1:
-            plot_height = 800
-            plot_width = int(800/plot_proportion)
+            plot_height = max_size
+            plot_width = int(max_size/plot_proportion)
         else:
-            plot_width = 800
-            plot_height = int(800*plot_proportion)
+            plot_width = max_size
+            plot_height = int(max_size*plot_proportion)
             
         toplot.resize_image(plot_width,plot_height)
         

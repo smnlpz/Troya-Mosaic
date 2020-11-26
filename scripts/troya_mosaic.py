@@ -59,7 +59,28 @@ class TroyaMosaic:
         idx = dists.argmin()
         
         return idx, dists[idx]
-
+    
+    def adjustValues(self,width,n_photos_width):
+        if width > 0 and n_photos_width > 0:
+            if width % n_photos_width != 0:
+                width -= width % n_photos_width
+            
+            tile_size = int(width/n_photos_width)
+            
+            proportion = self.__main_img.shape[0]/self.__main_img.shape[1]
+            height = int(width*proportion)
+            n_photos_height = int(height/tile_size)
+            
+            if n_photos_height == 0:
+                n_photos_height = 1
+            
+            height = n_photos_height*tile_size
+            
+            return True, height, width, n_photos_height, n_photos_width, tile_size
+        else:
+            return False, 0, width, 0, n_photos_width, 0
+        
+    
     @staticmethod
     def checkEnt(idx_i,idx_j,matrix,dist=1):
         forbidden = []
@@ -72,24 +93,20 @@ class TroyaMosaic:
         return forbidden
     
     def generate_by_color(self, n_photos_width, width, dist_rep=0, mostCommon=Tile.mostCommon_Average, redu=1):
+        if width < n_photos_width:
+            print('El ancho ha de ser mayor que el número de columnas')
+            return False
+        
+        success, height, width, n_photos_height, n_photos_width, tile_size = self.adjustValues(width, n_photos_width)
+        
+        if not success:
+            if width <= 0:
+                print('El ancho ha de ser mayor que 0')
+            if n_photos_width <= 0:
+                print('El número de columnas ha de ser mayor que 0')
+            return False
+        
         self.__result = self.__main_img.copy()
-        
-        if width % n_photos_width != 0:
-            width -= width % n_photos_width
-        
-        tile_size = int(width/n_photos_width)
-        
-        proportion = self.__result.shape[0]/self.__result.shape[1]
-        height = int(width*proportion)
-        n_photos_height = int(height/tile_size)
-        
-        if n_photos_height == 0:
-            n_photos_height=1
-        
-        height = n_photos_height*tile_size
-        
-        print(str(width) + ' píxeles de ancho y ' + str(n_photos_width) + ' fotos.')
-        print(str(height) + ' píxeles de alto y ' + str(n_photos_height) + ' fotos.')
         
         self.__result.resize_image(width,height)
         
@@ -98,10 +115,14 @@ class TroyaMosaic:
         for i in range(len(mosaic_imgs)):
             mosaic_imgs[i].resize_image(tile_size,tile_size)
             mostCommon(mosaic_imgs[i],redu=redu)
-            
+
+        print(str(width) + ' píxeles de ancho y ' + str(n_photos_width) + ' fotos.')
+        print(str(height) + ' píxeles de alto y ' + str(n_photos_height) + ' fotos.')
 
         print('Generando resultado...\n')
         
+        if dist_rep < 0:
+            dist_rep = 0
         used_matrix = -np.ones([n_photos_height,n_photos_width],dtype=np.int)
         
         for i in range(n_photos_height):
@@ -135,32 +156,6 @@ class TroyaMosaic:
         print('Done!\n')
         return True
         
-    
-    '''
-    def generate_by_pixel(self,n_photos):
-        self.__result = self.__main_img.copy()
-        mosaic_imgs = self.__tiles.copy()
-        
-        height = self.__result.shape[0]
-        width = self.__result.shape[1]
-        
-        size_mosaic = int(height/n_photos)
-        
-        for i in range(len(mosaic_imgs)):
-            mosaic_imgs[i].resize_image(size_mosaic,size_mosaic)
-        
-        print('Generando resultado...\n')
-        
-        for i in np.arange(0,height,size_mosaic):
-            for j in np.arange(0,width,size_mosaic):
-                cuadradito = Tile(self.__result[i:i+size_mosaic,j:j+size_mosaic])
-                idx, _ = TroyaMosaic.find_nearest(mosaic_imgs,cuadradito,Tile.getDiff_by_pixel)
-                self.__result[i:i+size_mosaic,j:j+size_mosaic] = mosaic_imgs[idx].getData()
-                if ((i*height/size_mosaic)/size_mosaic+j/size_mosaic)%((n_photos*n_photos)/10) == 0:
-                    print('Fotos añadidas: ' +str((i*height/size_mosaic)/size_mosaic+j/size_mosaic))
-                
-        print('Done!\n')
-    '''
     
     def rotate_image(self,orient):
         if orient ==  'left':
