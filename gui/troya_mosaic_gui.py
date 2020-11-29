@@ -3,9 +3,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
 
 from scripts.troya_mosaic import TroyaMosaic
 
@@ -32,34 +30,28 @@ class TroyaMosaicGUI:
         idx_row+=1
         
         
-        ttk.Label(mainwindow,text='Tamaño Resultado').grid(column=0, row=idx_row, columnspan=4)
+        ttk.Label(mainwindow,text='Ancho').grid(column=1, row=idx_row, pady=2)
+        ttk.Label(mainwindow,text='Alto').grid(column=2, row=idx_row, pady=2)
         idx_row+=1
         
+        width = tk.IntVar()
         height = tk.IntVar()
-        ttk.Label(mainwindow,text='Alto').grid(column=1, row=idx_row, pady=2)
+        self.width_entry = ttk.Entry(mainwindow, width=10, textvariable=width, validatecommand=lambda: self.callback_size(width.get(), ncol.get()), validate='focusout')
+        self.width_entry.grid(column=1, row=idx_row, pady=2)
         self.height_entry = ttk.Entry(mainwindow, state=tk.DISABLED, width=10, textvariable=height)
         self.height_entry.grid(column=2, row=idx_row, pady=2)
         idx_row+=1
         
-        width = tk.IntVar()
-        ttk.Label(mainwindow,text='Ancho').grid(column=1, row=idx_row, pady=2)
-        self.width_entry = ttk.Entry(mainwindow, width=10, textvariable=width, validatecommand=lambda: self.callback_size(width.get(), ncol.get()), validate='focusout')
-        self.width_entry.grid(column=2, row=idx_row, pady=2)
-        idx_row+=1
-        
-        ttk.Label(mainwindow,text='Número de Mosaicos').grid(column=0, row=idx_row, columnspan=4, pady=(15,2))
-        idx_row+=1
-        
-        nrow = tk.IntVar()
-        ttk.Label(mainwindow,text='Nº Filas').grid(column=1, row=idx_row, pady=2)
-        self.nrow_entry = ttk.Entry(mainwindow, state=tk.DISABLED, width=10, textvariable=nrow)
-        self.nrow_entry.grid(column=2, row=idx_row, pady=2)
+        ttk.Label(mainwindow,text='Nº Columnas').grid(column=1, row=idx_row, pady=2)
+        ttk.Label(mainwindow,text='Nº Filas').grid(column=2, row=idx_row, pady=2)
         idx_row+=1
         
         ncol = tk.IntVar()
-        ttk.Label(mainwindow,text='Nº Columnas').grid(column=1, row=idx_row, pady=2)
+        nrow = tk.IntVar()
         self.ncol_entry = ttk.Entry(mainwindow, width=10, textvariable=ncol, validatecommand=lambda: self.callback_size(width.get(), ncol.get()), validate='focusout')
-        self.ncol_entry.grid(column=2, row=idx_row, pady=2)
+        self.ncol_entry.grid(column=1, row=idx_row, pady=2)
+        self.nrow_entry = ttk.Entry(mainwindow, state=tk.DISABLED, width=10, textvariable=nrow)
+        self.nrow_entry.grid(column=2, row=idx_row, pady=2)
         idx_row+=1
         
         
@@ -75,7 +67,8 @@ class TroyaMosaicGUI:
         idx_row+=1
         
         self.n_anyadidas = ttk.Label(mainwindow, text='0 fotos añadidas')
-        self.n_anyadidas.grid(column=1, row=idx_row, columnspan=2, pady=2)
+        self.n_anyadidas.grid(column=0, row=idx_row, columnspan=2, pady=2)
+        ttk.Button(mainwindow, text='Borrar', command=self.DeleteTiles).grid(column=2, row=idx_row, columnspan=2, pady=2, sticky=tk.NSEW)
         idx_row+=1
         
         
@@ -99,21 +92,35 @@ class TroyaMosaicGUI:
         idx_row+=1
         
         
+        ttk.Label(mainwindow,text='Colorear mosaicos').grid(column=0,row=idx_row,columnspan=4,pady=2)
+        idx_row+=1
+        
+        self.alpha_colorized=tk.DoubleVar()
+        self.alpha_colorized_entry = ttk.Entry(mainwindow, textvariable=self.alpha_colorized, width=10, justify='center', state=tk.DISABLED)
+        self.alpha_colorized_entry.grid(column=0, row=idx_row, columnspan=2, rowspan=2)
+        
+        self.button_increment_colorized = ttk.Button(mainwindow, text='+', width=2, command=lambda: self.modifyAlphaColorized(value=1), state=tk.DISABLED)
+        self.button_increment_colorized.grid(column=2, row=idx_row, columnspan=2)
+        idx_row+=1
+        self.button_decrement_colorized = ttk.Button(mainwindow, text='–', width=2, command=lambda: self.modifyAlphaColorized(value=-1), state=tk.DISABLED)
+        self.button_decrement_colorized.grid(column=2, row=idx_row, columnspan=2)
+        idx_row+=1
+        
+        
         ttk.Label(mainwindow,text='Transparencia de la imagen principal').grid(column=0,row=idx_row,columnspan=4,pady=2)
         idx_row+=1
         
-        self.alpha=tk.DoubleVar()
-        self.alpha=0.0
-        self.alpha_entry = ttk.Entry(mainwindow, textvariable=self.alpha, width=10, justify='center', state=tk.DISABLED)
-        self.alpha_entry.insert(tk.END, str(self.alpha))
-        self.alpha_entry.grid(column=0, row=idx_row, columnspan=2, rowspan=2)
+        self.alpha_overlay=tk.DoubleVar()
+        self.alpha_overlay_entry = ttk.Entry(mainwindow, textvariable=self.alpha_overlay, width=10, justify='center', state=tk.DISABLED)
+        self.alpha_overlay_entry.grid(column=0, row=idx_row, columnspan=2, rowspan=2)
         
-        self.button_increment = ttk.Button(mainwindow, text='+', width=2, command=self.incrementAlpha, state=tk.DISABLED)
-        self.button_increment.grid(column=2, row=idx_row, columnspan=2)
+        self.button_increment_overlay = ttk.Button(mainwindow, text='+', width=2, command=lambda: self.modifyAlphaOverlay(value=1), state=tk.DISABLED)
+        self.button_increment_overlay.grid(column=2, row=idx_row, columnspan=2)
         idx_row+=1
-        self.button_decrement = ttk.Button(mainwindow, text='–', width=2, command=self.decrementAlpha, state=tk.DISABLED)
-        self.button_decrement.grid(column=2, row=idx_row, columnspan=2)
+        self.button_decrement_overlay = ttk.Button(mainwindow, text='–', width=2, command=lambda: self.modifyAlphaOverlay(value=-1), state=tk.DISABLED)
+        self.button_decrement_overlay.grid(column=2, row=idx_row, columnspan=2)
         idx_row+=1
+        
         
         button_save = ttk.Button(mainwindow, text='Guardar', command=self.SaveResult)
         button_save.grid(column=0, row=idx_row, columnspan=4, pady=10, sticky=tk.NSEW)
@@ -134,7 +141,7 @@ class TroyaMosaicGUI:
         
     
     def OpenMain(self):
-        main_photo_name = tk.filedialog.askopenfilename(initialdir='.', title='Selecciona la foto principal', filetypes=(('Archivos de Imagen', '*.png *.jpg'),('Todos los archivos','*.*')))
+        main_photo_name = tk.filedialog.askopenfilename(initialdir='.', title='Selecciona la foto principal', filetypes=(('Archivos de Imagen', '*.png *.jpg *.jpeg'),('Todos los archivos','*.*')))
         
         if main_photo_name:
             self.__troya.addMainImg(main_photo_name)
@@ -144,13 +151,19 @@ class TroyaMosaicGUI:
             
             self.callback_size(width=self.__troya.getMainImg().shape[1],n_photos_width=75)
             
-            self.alpha_entry.config(state=tk.DISABLED)
-            self.button_increment.config(state=tk.DISABLED)
-            self.button_decrement.config(state=tk.DISABLED)
+            self.alpha_colorized=0.0
+            self.alpha_colorized_entry.delete(0,tk.END)
+            self.alpha_colorized_entry.insert(0,self.alpha_colorized)
+            self.alpha_colorized_entry.config(state=tk.DISABLED)
+            self.button_increment_colorized.config(state=tk.DISABLED)
+            self.button_decrement_colorized.config(state=tk.DISABLED)
             
-            self.alpha=0.0
-            self.alpha_entry.delete(0,tk.END)
-            self.alpha_entry.insert(0,self.alpha)
+            self.alpha_overlay=0.0
+            self.alpha_overlay_entry.delete(0,tk.END)
+            self.alpha_overlay_entry.insert(0,self.alpha_overlay)
+            self.alpha_overlay_entry.config(state=tk.DISABLED)
+            self.button_increment_overlay.config(state=tk.DISABLED)
+            self.button_decrement_overlay.config(state=tk.DISABLED)
             
             self.plotInCanvas()
             
@@ -197,7 +210,7 @@ class TroyaMosaicGUI:
             
     
     def OpenTiles(self):
-        tiles_names = tk.filedialog.askopenfilenames(initialdir='.', title='Selecciona los mosaicos', filetypes=(('Archivos de Imagen', '*.png *.jpg'),('Todos los archivos','*.*')))
+        tiles_names = tk.filedialog.askopenfilenames(initialdir='.', title='Selecciona los mosaicos', filetypes=(('Archivos de Imagen', '*.png *.jpg *.jpeg'),('Todos los archivos','*.*')))
         
         if tiles_names:
             self.openInfoWindow('Cargando Mosaicos...')
@@ -213,6 +226,10 @@ class TroyaMosaicGUI:
         if direct:
             self.__troya.addDirectory(direct)
             self.n_anyadidas.config(text=str(len(self.__troya.getTiles())) + ' fotos añadidas')
+    
+    def DeleteTiles(self):
+        self.__troya.deleteTiles()
+        self.n_anyadidas.config(text='0 fotos añadidas')
     
     def callback_rep(self, dist_rep):
         if dist_rep < 0:
@@ -232,51 +249,57 @@ class TroyaMosaicGUI:
             
             if success:
                 self.plotInCanvas()
-            
-                self.alpha_entry.config(state=tk.NORMAL)
-                self.button_increment.config(state=tk.NORMAL)
-                self.button_decrement.config(state=tk.NORMAL)
                 
-                self.alpha=0.0
-                self.alpha_entry.delete(0,tk.END)
-                self.alpha_entry.insert(0,self.alpha)
+                self.alpha_colorized=0.0
+                self.alpha_colorized_entry.config(state=tk.NORMAL)
+                self.alpha_colorized_entry.delete(0,tk.END)
+                self.alpha_colorized_entry.insert(0,self.alpha_colorized)
+                self.button_increment_colorized.config(state=tk.NORMAL)
+                self.button_decrement_colorized.config(state=tk.NORMAL)
+                
+                self.alpha_overlay=0.0
+                self.alpha_overlay_entry.config(state=tk.NORMAL)
+                self.alpha_overlay_entry.delete(0,tk.END)
+                self.alpha_overlay_entry.insert(0,self.alpha_overlay)
+                self.button_increment_overlay.config(state=tk.NORMAL)
+                self.button_decrement_overlay.config(state=tk.NORMAL)
                 
                 tk.messagebox.showinfo(title='Información', message='Imagen generada!')
             else:
                 tk.messagebox.showinfo(title='Información', message='No se puede generar la imagen con una separación de ' +str(dist)+ ' casillas sin repeticiones.')
         
         
-    def incrementAlpha(self):
-        if self.alpha < 10:
-            self.alpha+=1
-            self.alpha_entry.delete(0,tk.END)
-            self.alpha_entry.insert(0,self.alpha/10)
+    def modifyAlphaColorized(self,value):
+        if not self.alpha_colorized+value < 0 and not self.alpha_colorized+value > 10:
+            self.alpha_colorized+=value
+            self.alpha_colorized_entry.delete(0,tk.END)
+            self.alpha_colorized_entry.insert(0,self.alpha_colorized/10)
             
-            self.__troya.maskOverlay(self.alpha/10)
+            self.__troya.setMask(alpha_overlay=self.alpha_overlay/10,alpha_colorized=self.alpha_colorized/10)
             
             self.plotInCanvas()
     
-    def decrementAlpha(self):
-        if self.alpha > 0:
-            self.alpha-=1
-            self.alpha_entry.delete(0,tk.END)
-            self.alpha_entry.insert(0,self.alpha/10)
+    def modifyAlphaOverlay(self,value):
+        if not self.alpha_overlay+value < 0 and not self.alpha_overlay+value > 10:
+            self.alpha_overlay+=value
+            self.alpha_overlay_entry.delete(0,tk.END)
+            self.alpha_overlay_entry.insert(0,self.alpha_overlay/10)
             
-            self.__troya.maskOverlay(self.alpha/10)
+            self.__troya.setMask(alpha_overlay=self.alpha_overlay/10,alpha_colorized=self.alpha_colorized/10)
             
             self.plotInCanvas()
         
     def SaveResult(self):
         where_to_save = tk.filedialog.asksaveasfilename(initialdir='.', title='Selecciona donde guardar el resultado',filetypes=(('Archivos PNG', '*.png'),('Archivos JPG', '*.jpg'),('Todos los archivos','*.*')))
         if where_to_save:
-            self.__troya.saveResult(where_to_save, compression=False, overlay=True)
+            self.__troya.saveResult(where_to_save, compression=False)
     
     def plotInCanvas(self):
-        toplot = self.__troya.getOverlay().copy()
+        toplot = self.__troya.getFinalResult().copy()
         
         plot_proportion = toplot.shape[0]/toplot.shape[1]
         
-        max_size = 500
+        max_size = 400
         
         if plot_proportion >= 1:
             plot_height = max_size

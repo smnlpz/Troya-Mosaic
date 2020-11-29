@@ -16,8 +16,9 @@ from scripts.tile import Tile
 class TroyaMosaic:
     __tiles = []
     __main_img = LargeImage()
-    __result = LargeImage()
-    __result_overlay = LargeImage()
+    __generated = LargeImage()
+    __colors_matrix = LargeImage()
+    __final_result = LargeImage()
     
     def __init__(self,img_name=None,directory_name=None):
         if img_name is not None:
@@ -26,34 +27,42 @@ class TroyaMosaic:
         if directory_name is not None:
             self.addDirectory(directory_name)
     
-    def getMainImg(self):
-        return self.__main_img
-    
     def getTiles(self):
         return self.__tiles
     
-    def getResult(self):
-        return self.__result
+    def getMainImg(self):
+        return self.__main_img
     
-    def getOverlay(self):
-        return self.__result_overlay
+    def getGenerated(self):
+        return self.__generated
+    
+    def getColorsMatrix(self):
+        return self.__colors_matrix
+    
+    def getFinalResult(self):
+        return self.__final_result
     
     def addMainImg(self,main_name):
         print('Cargando imagen ' + main_name + ' ...\n')
         self.__main_img = LargeImage(cv2.imread(main_name, cv2.IMREAD_UNCHANGED))
-        self.__result = self.__main_img.copy()
-        self.__result_overlay = self.__main_img.copy()
+        self.__generated = self.__main_img.copy()
+        self.__colors_matrix = self.__main_img.copy()
+        self.__final_result = self.__main_img.copy()
     
     def addTile(self,tile_name):
         img = cv2.imread(tile_name,cv2.IMREAD_UNCHANGED)
         if img is not None:
             self.__tiles.append(Tile(img))
+    
+    def deleteTiles(self):
+        self.__tiles = []
             
     def addDirectory(self,directory_name):
         print('Cargando directorio ' + directory_name + '...\n')
         for filename in os.listdir(directory_name):
             self.addTile(os.path.join(directory_name,filename))
-        
+    
+    @staticmethod
     def find_nearest(tiles, cuad, diffType):
         dists = np.array([diffType(tile,cuad) for tile in tiles])
         idx = dists.argmin()
@@ -106,9 +115,9 @@ class TroyaMosaic:
                 print('El número de columnas ha de ser mayor que 0')
             return False
         
-        self.__result = self.__main_img.copy()
-        
-        self.__result.resize_image(width,height)
+        self.__generated = self.__main_img.copy()
+        self.__generated.resize_image(width,height)
+        self.__colors_matrix = self.__generated.copy()
         
         mosaic_imgs = [tile.copy() for tile in self.__tiles]
         
@@ -123,6 +132,7 @@ class TroyaMosaic:
         
         if dist_rep < 0:
             dist_rep = 0
+            
         used_matrix = -np.ones([n_photos_height,n_photos_width],dtype=np.int)
         
         for i in range(n_photos_height):
@@ -135,23 +145,23 @@ class TroyaMosaic:
                 
                 if not useful_mosaic:
                     print('No se puede generar la imagen con una separación de ' +str(dist_rep)+ ' casillas sin repeticiones.\n')
-                    self.__result = self.__main_img.copy()
+                    self.__generated = self.__main_img.copy()
                     return False
                 
-                cuadradito = Tile(self.__result[i*tile_size:(i+1)*tile_size,j*tile_size:(j+1)*tile_size])
+                cuadradito = Tile(self.__generated[i*tile_size:(i+1)*tile_size,j*tile_size:(j+1)*tile_size])
                 mostCommon(cuadradito,redu=redu,n=1)
                 idx, _ = TroyaMosaic.find_nearest(useful_mosaic,cuadradito,Tile.getDiff_by_color)
-                self.__result[i*tile_size:(i+1)*tile_size,j*tile_size:(j+1)*tile_size] = useful_mosaic[idx].getData()
+                
+                self.__generated[i*tile_size:(i+1)*tile_size,j*tile_size:(j+1)*tile_size] = useful_mosaic[idx].getData()
+                self.__colors_matrix[i*tile_size:(i+1)*tile_size,j*tile_size:(j+1)*tile_size] = cuadradito.getColor()
                 
                 if dist_rep == 0:
                     used_matrix[i,j] = idx
                 else:
                     used_matrix[i,j] = next(k for k, elem in enumerate(mosaic_imgs) if (elem.getColor() == useful_mosaic[idx].getColor()).all())
-                    
-                
-        #print(used_matrix)
         
-        self.__result_overlay = self.__result.copy()
+        
+        self.__final_result = self.__generated.copy()
         
         print('Done!\n')
         return True
@@ -160,35 +170,39 @@ class TroyaMosaic:
     def rotate_image(self,orient):
         if orient ==  'left':
             self.__main_img.rotate_image(orient='left')
-            self.__result.rotate_image(orient='left')
-            self.__result_overlay.rotate_image(orient='left')
+            self.__generated.rotate_image(orient='left')
+            self.__colors_matrix.rotate_image(orient='left')
+            self.__final_result.rotate_image(orient='left')
         elif orient == 'right':
             self.__main_img.rotate_image(orient='right')
-            self.__result.rotate_image(orient='right')
-            self.__result_overlay.rotate_image(orient='right')
+            self.__generated.rotate_image(orient='right')
+            self.__colors_matrix.rotate_image(orient='right')
+            self.__final_result.rotate_image(orient='right')
     
-    def maskOverlay(self,alpha):
+    def setMask(self,alpha_colorized,alpha_overlay):
+        colorized = LargeImage(cv2.addWeighted(self.__generated.getData(), 1-alpha_colorized, self.__colors_matrix.getData(), alpha_colorized, 0))
+        
         resized = self.__main_img.copy()
-        resized.resize_image(self.__result.shape[1],self.__result.shape[0])
-        self.__result_overlay = LargeImage(cv2.addWeighted(self.__result.getData(), 1-alpha, resized.getData(), alpha, 0))
+        resized.resize_image(self.__generated.shape[1],self.__generated.shape[0])
+        
+        self.__final_result = LargeImage(cv2.addWeighted(colorized.getData(), 1-alpha_overlay, resized.getData(), alpha_overlay, 0))
     
-    def plot(self,mode='cv2',img='result'):
+    def plot(self,mode='cv2',img='final_result'):
         if img == 'main':
             self.__main_img.plot(mode=mode)
-        elif img == 'result':
-            self.__result.plot(mode=mode)
-        elif img == 'overlay':
-            self.__result_overlay.plot(mode=mode)
+        elif img == 'generated':
+            self.__generated.plot(mode=mode)
+        elif img == 'colors_matrix':
+            self.__colors_matrix.plot(mode=mode)
+        elif img == 'final_result':
+            self.__final_result.plot(mode=mode)
             
         
-    def saveResult(self,name,compression=True,overlay=False):
+    def saveResult(self,name,compression=True):
         print('Guardando imagen '+ name + ' ...\n')
         
-        to_save = self.__result.getData()
-        
-        if overlay:
-            to_save = self.__result_overlay.getData()
-        
+        to_save = self.__final_result.getData()
+
         if compression:
             cv2.imwrite(name,to_save,[cv2.IMWRITE_JPEG_QUALITY, 20])
         else:

@@ -30,12 +30,11 @@ def main():
 
     print("--- %s seconds ---" % (time.time() - start_time))
     
-    if result:
-        mosaic.maskOverlay(0.25)
-    
+    if result:    
         mosaic.saveResult(sys.argv[6], compression=True)
-        #mosaic.saveResult(sys.argv[6] + '_overlay.jpg',overlay=True,compression=True)
-    
+        mosaic.setMask(alpha_overlay=0.25, alpha_colorized=0)
+        mosaic.saveResult(sys.argv[6]+'_overlay.jpg', compression=True)
+        
     print('Fin!\n')
     print('######################################\n')
     
