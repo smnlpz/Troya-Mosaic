@@ -14,13 +14,13 @@ from scripts.large_image import LargeImage
 from scripts.tile import Tile
 
 class TroyaMosaic:
-    __tiles = []
-    __main_img = LargeImage()
-    __generated = LargeImage()
-    __colors_matrix = LargeImage()
-    __final_result = LargeImage()
+    __tiles = []                    # Azulejos utilizados
+    __main_img = LargeImage()       # Imagen principal
+    __generated = LargeImage()      # Imagen generada por los azulejos
+    __colors_matrix = LargeImage()  # Colores más comunes del mosaico
+    __final_result = LargeImage()   # Imagen generada procesada
     
-    def __init__(self,img_name=None,directory_name=None):
+    def __init__(self, img_name=None, directory_name=None):
         if img_name is not None:
             self.addMainImg(img_name)
         
@@ -42,34 +42,32 @@ class TroyaMosaic:
     def getFinalResult(self):
         return self.__final_result
     
-    def addMainImg(self,main_name):
+    # Añade la imagen principal y la asigna al resto de atributos
+    def addMainImg(self, main_name):
         print('Cargando imagen ' + main_name + ' ...\n')
         self.__main_img = LargeImage(cv2.imread(main_name, cv2.IMREAD_UNCHANGED))
         self.__generated = self.__main_img.copy()
         self.__colors_matrix = self.__main_img.copy()
         self.__final_result = self.__main_img.copy()
     
-    def addTile(self,tile_name):
+    # Añade un nuevo azulejo
+    def addTile(self, tile_name):
         img = cv2.imread(tile_name,cv2.IMREAD_UNCHANGED)
         if img is not None:
             self.__tiles.append(Tile(img))
     
-    def deleteTiles(self):
-        self.__tiles = []
-            
-    def addDirectory(self,directory_name):
+    # Carga los azulejos de un directorio
+    def addDirectory(self, directory_name):
         print('Cargando directorio ' + directory_name + '...\n')
         for filename in os.listdir(directory_name):
             self.addTile(os.path.join(directory_name,filename))
     
-    @staticmethod
-    def find_nearest(tiles, cuad, diffType):
-        dists = np.array([diffType(tile,cuad) for tile in tiles])
-        idx = dists.argmin()
-        
-        return idx, dists[idx]
+    # Borra todos los azulejos
+    def deleteTiles(self):
+        self.__tiles = []
     
-    def adjustValues(self,width,n_photos_width):
+    # Ajusta los valores añadidos por el usuario
+    def adjustValues(self, width, n_photos_width):
         if width > 0 and n_photos_width > 0:
             if width % n_photos_width != 0:
                 width -= width % n_photos_width
@@ -88,10 +86,19 @@ class TroyaMosaic:
             return True, height, width, n_photos_height, n_photos_width, tile_size
         else:
             return False, 0, width, 0, n_photos_width, 0
-        
     
+    
+    # Busca en tiles el azulejo más parecido a cuad
     @staticmethod
-    def checkEnt(idx_i,idx_j,matrix,dist=1):
+    def find_nearest(tiles, cuad, diffType):
+        dists = np.array([diffType(tile,cuad) for tile in tiles])
+        idx = dists.argmin()
+        
+        return idx, dists[idx]
+    
+    # Devuelve los azulejos que se han añadido alrededor de la posición (idx_i,idx_j)
+    @staticmethod
+    def checkEnt(idx_i, idx_j, matrix, dist=1):
         forbidden = []
         for i in range(idx_i-dist,idx_i+dist+1):
             for j in range(idx_j-dist,idx_j+dist+1):
@@ -101,6 +108,7 @@ class TroyaMosaic:
                 
         return forbidden
     
+    # Genera la imagen principal a partir de los azulejos
     def generate_by_color(self, n_photos_width, width, dist_rep=0, mostCommon=Tile.mostCommon_Average, redu=1):
         if width < n_photos_width:
             print('El ancho ha de ser mayor que el número de columnas')
@@ -166,8 +174,8 @@ class TroyaMosaic:
         print('Done!\n')
         return True
         
-    
-    def rotate_image(self,orient):
+    # Rota todas las imágenes de la instancia en una dirección
+    def rotate_image(self, orient):
         if orient ==  'left':
             self.__main_img.rotate_image(orient='left')
             self.__generated.rotate_image(orient='left')
@@ -179,7 +187,12 @@ class TroyaMosaic:
             self.__colors_matrix.rotate_image(orient='right')
             self.__final_result.rotate_image(orient='right')
     
-    def setMask(self,alpha_colorized,alpha_overlay):
+    # Añade a la imagen generada una máscara
+    # alpha_colorized contiene el valor de la transparencia
+    # para la imagen con los colores más comunes de la foto
+    # alpha_overlay contiene el valor de la tranparencia para
+    # la imagen principal
+    def setMask(self, alpha_colorized, alpha_overlay):
         colorized = LargeImage(cv2.addWeighted(self.__generated.getData(), 1-alpha_colorized, self.__colors_matrix.getData(), alpha_colorized, 0))
         
         resized = self.__main_img.copy()
@@ -187,7 +200,8 @@ class TroyaMosaic:
         
         self.__final_result = LargeImage(cv2.addWeighted(colorized.getData(), 1-alpha_overlay, resized.getData(), alpha_overlay, 0))
     
-    def plot(self,mode='cv2',img='final_result'):
+    # Muestra la imagen elegida por pantalla
+    def plot(self, mode='cv2', img='final_result'):
         if img == 'main':
             self.__main_img.plot(mode=mode)
         elif img == 'generated':
@@ -197,8 +211,8 @@ class TroyaMosaic:
         elif img == 'final_result':
             self.__final_result.plot(mode=mode)
             
-        
-    def saveResult(self,name,compression=True):
+    # Guarda el resultado en la ruta elegida. Se puede comprimir la imagen.
+    def saveResult(self, name, compression=True):
         print('Guardando imagen '+ name + ' ...\n')
         
         to_save = self.__final_result.getData()
